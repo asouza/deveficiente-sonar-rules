@@ -25,8 +25,13 @@ import org.sonar.java.checks.verifier.JavaCheckVerifier;
 public class SpringControllerHttpVerbsMethodsEntityRuleTest {
 
   @Test
-  public void check() {
+  public void checkControllers() {
     JavaCheckVerifier.verify("src/test/files/SpringControllerHttpMethodsEntityRule.java", new SpringControllerHttpVerbsMethodsEntityRule(), "target/test-jars");
+  }
+  
+  @Test
+  public void checkRestControllers() {
+	  JavaCheckVerifier.verify("src/test/files/SpringRestControllerHttpMethodsEntityRule.java", new SpringControllerHttpVerbsMethodsEntityRule(), "target/test-jars");
   }
 
 }
