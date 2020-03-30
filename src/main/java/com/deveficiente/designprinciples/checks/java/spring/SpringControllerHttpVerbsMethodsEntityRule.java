@@ -19,6 +19,7 @@
  */
 package com.deveficiente.designprinciples.checks.java.spring;
 
+import org.sonar.check.Priority;
 import org.sonar.check.Rule;
 import org.sonar.plugins.java.api.JavaFileScanner;
 import org.sonar.plugins.java.api.JavaFileScannerContext;
@@ -29,7 +30,11 @@ import org.sonar.plugins.java.api.tree.MethodTree;
 import org.sonar.plugins.java.api.tree.TypeTree;
 import org.sonar.plugins.java.api.tree.VariableTree;
 
-@Rule(key = "SpringControllerHttpVerbsMethodsEntityRule")
+@Rule(key = "SpringControllerHttpVerbsMethodsEntityRule",
+name = "Http methods request parameters must no be an @Entity class",
+description = "A method in Spring controller must not receive @Entity as parameters.",
+priority = Priority.BLOCKER,
+tags = {"spring","security","code-smell"})
 public class SpringControllerHttpVerbsMethodsEntityRule extends BaseTreeVisitor implements JavaFileScanner {
 
   private JavaFileScannerContext context;
