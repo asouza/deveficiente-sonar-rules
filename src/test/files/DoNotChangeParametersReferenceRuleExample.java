@@ -21,11 +21,36 @@ class DoNotChangeParametersReferenceRuleExample {
 	Order order2 = new Order();
 	order2.setOrdered("blala"); 
     return null;
+  }
+  
+  @RequestMapping("/updateOrder") 
+  public String updateOrder3(Order order) { 	
+	Order order2 = new Order();
+	order2.setOrdered("blala"); 
+    return null;
+  }  
+  
+  @RequestMapping("/updateOrder") 
+  public String updateOrder4(Order order) { 	
+	Order delegate = new Order(order);
+	delegate.setOrdered("blala"); 
+    return null;
+  }  
+  
+  @RequestMapping("/updateOrder")
+  //ignoring for now
+  public String updateOrder4(Order order) { 	
+	Order anotherRefereceToTheSameObject = order;
+	//anotherRefereceToTheSameObject.setOrdered("blala"); // Noncompliant {{Do not change parameter state}}
+    return null;
   }  
  
 
   public class Order {
-    String ordered;
+    String ordered;   
+    
+    public Order(Order delegate) {    
+    }
     
     public void setOrdered(String value) {
     	this.ordered = value;
