@@ -14,6 +14,14 @@ class DoNotChangeParametersReferenceRuleExample {
 	order.setOrdered("bla"); // Noncompliant {{Do not change parameter state}}
     return null;
   }
+  
+  @RequestMapping("/updateOrder") 
+  public String updateOrder2(Order order) { 	
+	order.setOrdered("bla"); // Noncompliant {{Do not change parameter state}}
+	Order order2 = new Order();
+	order2.setOrdered("blala"); 
+    return null;
+  }  
  
 
   public class Order {

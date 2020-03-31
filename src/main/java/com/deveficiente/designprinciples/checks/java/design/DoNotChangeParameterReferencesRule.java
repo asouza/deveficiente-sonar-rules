@@ -15,6 +15,9 @@ import org.sonar.plugins.java.api.tree.MethodTree;
 import org.sonar.plugins.java.api.tree.StatementTree;
 import org.sonar.plugins.java.api.tree.Tree;
 import org.sonar.plugins.java.api.tree.Tree.Kind;
+
+import com.deveficiente.designprinciples.checks.shared.MethodInvocations;
+
 import org.sonar.plugins.java.api.tree.VariableTree;
 
 @Rule(key = "DoNotChangeParameterReferencesRule", 
@@ -32,7 +35,6 @@ public class DoNotChangeParameterReferencesRule extends IssuableSubscriptionVisi
 	public void visitNode(Tree tree) {
 		MethodTree methodTree = (MethodTree) tree;
 
-		// se o corpo ta nulo ou não tem parametros
 		if (methodTree.block() == null || methodTree.parameters().isEmpty()) {
 			return;
 		}
@@ -42,19 +44,23 @@ public class DoNotChangeParameterReferencesRule extends IssuableSubscriptionVisi
 		Set<String> parametersNames = parameters.stream().map(VariableTree::symbol).map(Symbol::name)
 				.collect(Collectors.toSet());
 
-		List<StatementTree> linesOfCode = methodTree.block().body();
+		MethodInvocations methodInvocations = new MethodInvocations(methodTree.block());
 
-		linesOfCode.stream().filter(l -> l instanceof ExpressionStatementTree)
-				.map(l -> ((ExpressionStatementTree) l).expression()).filter(ex -> ex instanceof MethodInvocationTree)
-				.map(ex -> (MethodInvocationTree) ex).filter(method -> parametersNames.contains(callSiteName(method)))
-				.filter(method -> method.symbol().name().startsWith("set")).forEach(m -> {
+		methodInvocations.all()
+				.filter(method -> wasInvokedByAParameterReference(method, parametersNames))
+				.filter(this :: isAPossibleMutatingMethod)
+				.forEach(m -> {
 					context.reportIssue(this, m, "Do not change parameter state");
 				});
 
 	}
 
-	private String callSiteName(MethodInvocationTree method) {
-		return method.firstToken().text();
+	private boolean isAPossibleMutatingMethod(MethodInvocationTree method) {
+		return method.symbol().name().startsWith("set");
+	}
+
+	private boolean wasInvokedByAParameterReference(MethodInvocationTree method,Set<String> parametersNames) {
+		return parametersNames.contains(method.firstToken().text());
 	}
 
 }
