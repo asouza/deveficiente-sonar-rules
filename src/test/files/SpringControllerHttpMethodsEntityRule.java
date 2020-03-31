@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import javax.persistence.Entity;
 
 @Controller
-public class HelloController {
+class HelloController {
 
   @RequestMapping("/updateOrder") 
   public String updateOrder(Order order) { // Noncompliant {{You must avoid connect request parameters with your model}}
