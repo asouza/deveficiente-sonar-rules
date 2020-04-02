@@ -52,7 +52,7 @@ import org.sonar.plugins.java.api.tree.WildcardTree;
 @Rule(key = "SystemSpecificClassCoupling")
 public class SystemSpecificClassCoupling extends BaseTreeVisitor implements JavaFileScanner {
 
-  private static final int DEFAULT_MAX = 7;
+  private static final int DEFAULT_MAX = 9;
 
   @RuleProperty(
     key = "max",
@@ -183,7 +183,7 @@ public class SystemSpecificClassCoupling extends BaseTreeVisitor implements Java
     }
   }
 
-  private void checkTypes(@Nullable Tree type) {
+  protected void checkTypes(@Nullable Tree type) {
     if (type == null || types == null) {
       return;
     }
