@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import org.springframework.validation.BindingResult; 
 
 @Controller 
-class SystemSpecificClassCouplingExample { // Noncompliant {{Split this class into smaller and more specialized ones to reduce its dependencies on other classes from 8 to the maximum authorized 7 or less.}} 
+class SystemSpecificClassCouplingExample { // Compliant 
 	
   private OrderRepository orderRepository;
   private LogRepository logRepository;
