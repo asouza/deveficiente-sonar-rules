@@ -22,11 +22,11 @@ package com.deveficiente.designprinciples.checks.java.design;
 import org.junit.Test;
 import org.sonar.java.checks.verifier.JavaCheckVerifier;
 
-public class SystemSpecificClassCouplingTest {
+public class SystemClassCouplingTest {
 
   @Test
   public void checkControllers() {
-    JavaCheckVerifier.verify("src/test/files/SystemSpecificClassCouplingExample.java", new SystemSpecificClassCoupling(), "target/test-jars");
+    JavaCheckVerifier.verify("src/test/files/SystemSpecificClassCouplingExample.java", new SystemClassCoupling(), "target/test-jars");
   }
   
 

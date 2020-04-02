@@ -50,157 +50,168 @@ import org.sonar.plugins.java.api.tree.VariableTree;
 import org.sonar.plugins.java.api.tree.WildcardTree;
 
 @Rule(key = "SystemSpecificClassCoupling")
-public class SystemSpecificClassCoupling extends BaseTreeVisitor implements JavaFileScanner {
+public class CustomClassCoupling extends BaseTreeVisitor implements JavaFileScanner {
 
-  private static final int DEFAULT_MAX = 9;
+	private static final int DEFAULT_MAX = 9;
 
-  @RuleProperty(
-    key = "max",
-    description = "Maximum number of classes a single class is allowed to depend upon",
-    defaultValue = "" + DEFAULT_MAX)
-  public int max = DEFAULT_MAX;
+	@RuleProperty(key = "max", description = "Maximum number of classes a single class is allowed to depend upon", defaultValue = ""
+			+ DEFAULT_MAX)
+	public int max = DEFAULT_MAX;
 
-  private final Deque<Set<String>> nesting = new LinkedList<>();
-  private Set<String> types;
-  private JavaFileScannerContext context;
+	private final Deque<Set<String>> nesting = new LinkedList<>();
+	private Set<String> types;
+	private JavaFileScannerContext context;
 
-  @Override
-  public void scanFile(JavaFileScannerContext context) {
-    this.context = context;
-    scan(context.getTree());
-  }
+	@Override
+	public void scanFile(JavaFileScannerContext context) {
+		this.context = context;
+		scan(context.getTree());
+	}
 
-  @Override
-  public void visitClass(ClassTree tree) {
-    if (tree.is(Tree.Kind.CLASS) && tree.simpleName() != null) {
-      nesting.push(types);
-      types = new HashSet<>();
-    }
-    checkTypes(tree.superClass());
-    checkTypes((List<? extends Tree>) tree.superInterfaces());
-    super.visitClass(tree);
-    if (tree.is(Tree.Kind.CLASS) && tree.simpleName() != null) {    	
-      if (types.size() > max) {
-    	  System.out.println(tree.simpleName()+"===");  
-        context.reportIssue(
-          this,
-          tree.simpleName(),
-          "Split this class into smaller and more specialized ones to reduce its dependencies on other classes from " +
-            types.size() + " to the maximum authorized " + max + " or less.");
-      }
-      types = nesting.pop();
-    }
-  }
+	@Override
+	public void visitClass(ClassTree tree) {
+		if (tree.is(Tree.Kind.CLASS) && tree.simpleName() != null) {
+			nesting.push(types);
+			types = new HashSet<>();
+		}
+		checkTypes(tree.superClass());
+		checkTypes((List<? extends Tree>) tree.superInterfaces());
+		super.visitClass(tree);
+		if (tree.is(Tree.Kind.CLASS) && tree.simpleName() != null) {
+			if (types.size() > max) {
+				context.reportIssue(this, tree.simpleName(),
+						"Split this class into smaller and more specialized ones to reduce its dependencies on other classes from "
+								+ types.size() + " to the maximum authorized " + max + " or less.");
+			}
+			types = nesting.pop();
+		}
+	}
 
-  @Override
-  public void visitVariable(VariableTree tree) {
-    checkTypes(tree.type());
-    super.visitVariable(tree);
-  }
+	@Override
+	public void visitVariable(VariableTree tree) {
+		checkTypes(tree.type());
+		super.visitVariable(tree);
+	}
 
-  @Override
-  public void visitCatch(CatchTree tree) {
-    //skip visit catch parameter for backward compatibility
-    scan(tree.block());
-  }
+	@Override
+	public void visitCatch(CatchTree tree) {
+		// skip visit catch parameter for backward compatibility
+		scan(tree.block());
+	}
 
-  @Override
-  public void visitTypeCast(TypeCastTree tree) {
-    checkTypes(tree.type());
-    super.visitTypeCast(tree);
-  }
+	@Override
+	public void visitTypeCast(TypeCastTree tree) {
+		checkTypes(tree.type());
+		super.visitTypeCast(tree);
+	}
 
-  @Override
-  public void visitMethod(MethodTree tree) {
-    checkTypes(tree.returnType());
-    super.visitMethod(tree);
-  }
+	@Override
+	public void visitMethod(MethodTree tree) {
+		checkTypes(tree.returnType());
+		super.visitMethod(tree);
+	}
 
-  @Override
-  public void visitTypeParameter(TypeParameterTree typeParameter) {
-    checkTypes((List<? extends Tree>) typeParameter.bounds());
-    checkTypes(typeParameter.identifier());
-    super.visitTypeParameter(typeParameter);
-  }
+	@Override
+	public void visitTypeParameter(TypeParameterTree typeParameter) {
+		checkTypes((List<? extends Tree>) typeParameter.bounds());
+		checkTypes(typeParameter.identifier());
+		super.visitTypeParameter(typeParameter);
+	}
 
-  @Override
-  public void visitUnionType(UnionTypeTree tree) {
-    // can not be visited because of visitCatch excluding exceptions
-    checkTypes((List<? extends Tree>) tree.typeAlternatives());
-    super.visitUnionType(tree);
-  }
+	@Override
+	public void visitUnionType(UnionTypeTree tree) {
+		// can not be visited because of visitCatch excluding exceptions
+		checkTypes((List<? extends Tree>) tree.typeAlternatives());
+		super.visitUnionType(tree);
+	}
 
-  @Override
-  public void visitParameterizedType(ParameterizedTypeTree tree) {
-    checkTypes(tree.type());
-    checkTypes((List<Tree>) tree.typeArguments());
-    super.visitParameterizedType(tree);
-  }
+	@Override
+	public void visitParameterizedType(ParameterizedTypeTree tree) {
+		checkTypes(tree.type());
+		checkTypes((List<Tree>) tree.typeArguments());
+		super.visitParameterizedType(tree);
+	}
 
-  @Override
-  public void visitNewClass(NewClassTree tree) {
-    if (tree.typeArguments() != null) {
-      checkTypes((List<Tree>) tree.typeArguments());
-    }
-    if (tree.identifier().is(Tree.Kind.PARAMETERIZED_TYPE)) {
-      scan(tree.enclosingExpression());
-      checkTypes((List<Tree>) ((ParameterizedTypeTree) tree.identifier()).typeArguments());
-      scan(tree.typeArguments());
-      scan(tree.arguments());
-      scan(tree.classBody());
-    } else {
-      super.visitNewClass(tree);
-    }
-  }
+	@Override
+	public void visitNewClass(NewClassTree tree) {
+		if (tree.typeArguments() != null) {
+			checkTypes((List<Tree>) tree.typeArguments());
+		}
+		if (tree.identifier().is(Tree.Kind.PARAMETERIZED_TYPE)) {
+			scan(tree.enclosingExpression());
+			checkTypes((List<Tree>) ((ParameterizedTypeTree) tree.identifier()).typeArguments());
+			scan(tree.typeArguments());
+			scan(tree.arguments());
+			scan(tree.classBody());
+		} else {
+			super.visitNewClass(tree);
+		}
+	}
 
-  @Override
-  public void visitWildcard(WildcardTree tree) {
-    checkTypes(tree.bound());
-    super.visitWildcard(tree);
-  }
+	@Override
+	public void visitWildcard(WildcardTree tree) {
+		checkTypes(tree.bound());
+		super.visitWildcard(tree);
+	}
 
-  @Override
-  public void visitArrayType(ArrayTypeTree tree) {
-    checkTypes(tree.type());
-    super.visitArrayType(tree);
-  }
+	@Override
+	public void visitArrayType(ArrayTypeTree tree) {
+		checkTypes(tree.type());
+		super.visitArrayType(tree);
+	}
 
-  @Override
-  public void visitInstanceOf(InstanceOfTree tree) {
-    checkTypes(tree.type());
-    super.visitInstanceOf(tree);
-  }
+	@Override
+	public void visitInstanceOf(InstanceOfTree tree) {
+		checkTypes(tree.type());
+		super.visitInstanceOf(tree);
+	}
 
-  @Override
-  public void visitNewArray(NewArrayTree tree) {
-    checkTypes(tree.type());
-    super.visitNewArray(tree);
-  }
+	@Override
+	public void visitNewArray(NewArrayTree tree) {
+		checkTypes(tree.type());
+		super.visitNewArray(tree);
+	}
 
-  private void checkTypes(List<? extends Tree> types) {
-    for (Tree type : types) {
-      checkTypes(type);
-    }
-  }
+	private void checkTypes(List<? extends Tree> types) {
+		for (Tree type : types) {
+			checkTypes(type);
+		}
+	}
 
-  protected void checkTypes(@Nullable Tree type) {
-    if (type == null || types == null) {
-      return;
-    }
-    if (type.is(Tree.Kind.IDENTIFIER)) {
-      types.add(((IdentifierTree) type).name());
-    } else if (type.is(Tree.Kind.MEMBER_SELECT)) {
-      Deque<String> fullyQualifiedNameComponents = new ArrayDeque<>();
-      ExpressionTree expr = (ExpressionTree) type;
-      while (expr.is(Tree.Kind.MEMBER_SELECT)) {
-        MemberSelectExpressionTree mse = (MemberSelectExpressionTree) expr;
-        fullyQualifiedNameComponents.push(mse.identifier().name());
-        expr = mse.expression();
-      }
-      if (expr.is(Tree.Kind.IDENTIFIER)) {
-        fullyQualifiedNameComponents.push(((IdentifierTree) expr).name());
-      }
-      types.add(String.join(".", fullyQualifiedNameComponents));
-    }
-  }
+	private void checkTypes(@Nullable Tree type) {
+		if (type == null || types == null) {
+			return;
+		}
+		if (type.is(Tree.Kind.IDENTIFIER)) {
+			IdentifierTree identifierTree = (IdentifierTree) type;			
+			String fullyQualifiedName = identifierTree.symbolType().fullyQualifiedName();
+			if (isFullyQualifiedNameIdentifierIsValid(fullyQualifiedName)) {
+				types.add(fullyQualifiedName);
+			}
+		} else if (type.is(Tree.Kind.MEMBER_SELECT)) {
+			Deque<String> fullyQualifiedNameComponents = new ArrayDeque<>();
+			ExpressionTree expr = (ExpressionTree) type;
+			while (expr.is(Tree.Kind.MEMBER_SELECT)) {
+				MemberSelectExpressionTree mse = (MemberSelectExpressionTree) expr;
+				fullyQualifiedNameComponents.push(mse.identifier().name());
+				expr = mse.expression();
+			}
+			if (expr.is(Tree.Kind.IDENTIFIER)) {
+				String fullyQualifiedNameIdentifier = ((IdentifierTree) expr).name();
+				if (isFullyQualifiedNameIdentifierIsValid(fullyQualifiedNameIdentifier)) {
+					fullyQualifiedNameComponents.push(fullyQualifiedNameIdentifier);
+				}
+			}
+			types.add(String.join(".", fullyQualifiedNameComponents));
+		}
+	}
+
+	/**
+	 * This method can be overridden to support custom fullyQualifiedNameIdentifier validation
+	 * @param fullyQualifiedNameIdentifier
+	 * @return if fullyQualifiedNameIdentifier should be counted as coupling
+	 */
+	protected boolean isFullyQualifiedNameIdentifierIsValid(String fullyQualifiedNameIdentifier) {
+		return true;
+	}
 }
