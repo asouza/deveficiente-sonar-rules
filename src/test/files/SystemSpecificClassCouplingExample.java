@@ -6,37 +6,108 @@ import java.util.List;
 import java.util.ArrayList;
 import org.springframework.validation.BindingResult; 
 
-@Controller 
-class SystemSpecificClassCouplingExample { // Compliant 
+class Example1 { // Noncompliant 
 	
-  private OrderRepository orderRepository;
-  private LogRepository logRepository;
-  private Set<String> names = new HashSet<>();
+	T1 a1;    
+	T2 a2;    
+	T3 a3;    
+	T4 a4;    
+	T5 a5;
+	T6 a6;
+	T7 a7;
+	T8 a8;
+	T9 a9;
+	T10 a10;	
+  
+}
 
-  @RequestMapping("/updateOrder") 
-  public String updateOrder(Order order,BindingResult result) { 
-	List<Integer> numbers = new ArrayList<>();
-    return null;
-  }
+class Example2 { // Compliant 
+	
+	T1 a1;    
+	T2 a2;    
+	T3 a3;    
+	T4 a4;    
+	T5 a5;
+	T6 a6;
+	T7 a7;
+	T8 a8;
+	T9 a9;	
   
-  
-  public class OrderRepository {
-	  
-  }
-  
-  
-  public class LogRepository {
-	  
-  }
+}
 
-  public class Order {
-    String ordered;   
-    
-    public Order(Order delegate) {    
-    }
-    
-    public void setOrdered(String value) {
-    	this.ordered = value;
-    }
-  }
+class ExampleWithJavaRuntimeTypes { // Compliant 
+	
+	T1 a1;    
+	T2 a2;    
+	T3 a3;    
+	T4 a4;    
+	T5 a5;
+	T6 a6;
+	T7 a7;
+	T8 a8;
+	T9 a9;	
+	Set<String> a10;
+	List<String> a11;
+	HashSet<String> a12;
+  
+}
+
+class ExampleWithJavaRuntimeTypesAndStringType { // Compliant 
+	
+	T1 a1;    
+	T2 a2;    
+	T3 a3;    
+	T4 a4;    
+	T5 a5;
+	T6 a6;
+	T7 a7;
+	T8 a8;
+	T9 a9;	
+	Set<String> a10;
+	List<String> a11;
+	HashSet<String> a12;
+	BindingResult result;
+  
+}
+
+class SpringControllerExampleWithJavaRuntimeTypes { // Compliant 
+	
+	T1 a1;    
+	T2 a2;    
+	T3 a3;    
+	T4 a4;    
+	T5 a5;
+	T6 a6;
+	T7 a7;
+	T8 a8;
+	T9 a9;	
+	Set<String> a10;
+	List<String> a11;
+	HashSet<String> a12;	
+	
+	public void test(BindingResult result) {
+		
+	}
+  
+}
+
+class SpringControllerExampleWithJavaRuntimeTypesWithSystemTypeVariable { // Noncompliant 
+	
+	T1 a1;    
+	T2 a2;    
+	T3 a3;    
+	T4 a4;    
+	T5 a5;
+	T6 a6;
+	T7 a7;
+	T8 a8;
+	T9 a9;	
+	Set<String> a10;
+	List<String> a11;
+	HashSet<String> a12;	
+	
+	public void test(BindingResult result) {
+		T10 t10;
+	}
+  
 }

@@ -1,27 +1,29 @@
 package com.deveficiente.designprinciples.checks.java.design;
 
-public class SystemClassCoupling extends CustomClassCoupling{
-	
+import java.util.stream.Stream;
+
+import org.sonar.check.RuleProperty;
+
+public class SystemClassCoupling extends CustomClassCoupling {
+
+	private static final String DEFAULT_PACKAGES_TO_BE_IGNORED = "java,javax,org.springframework";
+
+	@RuleProperty(key = "packagesOrClassesToBeIgnored", description = "Define packages(can be just the start) or classes that should be ignored during the class coupling analysis. If you have more than on, split them with comma. Ex: java,javax,org.springframework,org.hibernate", defaultValue = DEFAULT_PACKAGES_TO_BE_IGNORED)
+	public String packagesOrClassesToBeIgnored = DEFAULT_PACKAGES_TO_BE_IGNORED;
+
 	@Override
 	protected boolean isFullyQualifiedNameIdentifierIsValid(String fullyQualifiedNameIdentifier) {
-		if(isJavaRuntimeClass(fullyQualifiedNameIdentifier) 
-				|| isSpringClass(fullyQualifiedNameIdentifier)) {
+		if (shouldIgnore(fullyQualifiedNameIdentifier)) {
 			return false;
 		}
-		
-		System.out.println(fullyQualifiedNameIdentifier);
+
 		return super.isFullyQualifiedNameIdentifierIsValid(fullyQualifiedNameIdentifier);
 	}
 
-	private boolean isSpringClass(String fullyQualifiedNameIdentifier) {
-		return fullyQualifiedNameIdentifier.startsWith("org.springframework");
+	private boolean shouldIgnore(String fullyQualifiedNameIdentifier) {
+		String[] toBeIgnored = packagesOrClassesToBeIgnored.split(",");
+		return Stream.of(toBeIgnored)
+				.anyMatch(fullyQualifiedNameIdentifier::startsWith);
 	}
-
-	private boolean isJavaRuntimeClass(String fullyQualifiedNameIdentifier) {
-		return fullyQualifiedNameIdentifier.startsWith("java") 
-				|| 
-			   fullyQualifiedNameIdentifier.startsWith("javax")	;
-	}
-	
 
 }
